@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('dragover', updateCursorPos, { passive: true, capture: true });
 
         document.addEventListener('mouseover', (e) => {
-            if (e.target && e.target.closest && e.target.closest('a, button, .bento-card, .skill-pill, .modal-close-btn, .modal-project-card, .hackathon-card, .project-link-icon')) {
+            if (e.target && e.target.closest && e.target.closest('a, button, .bento-card, .skill-pill, .modal-close-btn, .modal-project-card, .hackathon-card, .project-link-icon, .spotify-mini-pill, .spotify-icon-btn, .spotify-ctrl-btn, .spotify-progress-bar-wrap, .spotify-vol-slider, .spotify-mini-btn')) {
                 cursor.classList.add('hover');
             } else {
                 cursor.classList.remove('hover');
@@ -1267,4 +1267,361 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     fetchRealGitHubContributions();
+
+    /* ======================================================================
+       SPOTIFY MUSIC PLAYER ENGINE (Streamlined Controls & Fast Smooth Hover Pop-Up)
+       ====================================================================== */
+    function initSpotifyPlayer() {
+        const widget = document.getElementById('spotify-widget');
+        const miniPill = document.getElementById('spotify-mini-pill');
+        const card = document.getElementById('spotify-card');
+        const audio = document.getElementById('spotify-audio-player');
+        if (!widget || !miniPill || !card || !audio) return;
+
+        // Elements - Controls (Only Prev, Play/Pause, Next, Volume)
+        const miniPlayBtn = document.getElementById('mini-play-btn');
+        const miniPlayIcon = document.getElementById('mini-play-icon');
+        const miniSongName = document.getElementById('mini-song-name');
+        const miniStickerImg = document.getElementById('mini-sticker-img');
+        const playBtn = document.getElementById('spotify-play-btn');
+        const playIcon = document.getElementById('spotify-play-icon');
+        const prevBtn = document.getElementById('spotify-prev-btn');
+        const nextBtn = document.getElementById('spotify-next-btn');
+        const collapseBtn = document.getElementById('spotify-collapse-btn');
+
+        // Elements - Track Meta & Sticker
+        const coverImg = document.getElementById('spotify-cover-img');
+        const stickerBadge = document.getElementById('spotify-sticker-badge');
+        const trackTitle = document.getElementById('spotify-track-title');
+        const trackArtist = document.getElementById('spotify-track-artist');
+        const trackCounter = document.getElementById('spotify-track-counter');
+
+        // Elements - Progress & Volume
+        const progressWrap = document.getElementById('spotify-progress-wrap');
+        const progressFill = document.getElementById('spotify-progress-fill');
+        const progressHandle = document.getElementById('spotify-progress-handle');
+        const timeCurrent = document.getElementById('spotify-time-current');
+        const timeTotal = document.getElementById('spotify-time-total');
+        const volBtn = document.getElementById('spotify-vol-btn');
+        const volIcon = document.getElementById('spotify-vol-icon');
+        const volSlider = document.getElementById('spotify-vol-slider');
+
+        // Playlist Data (Sahil's Real Most Played Tracks)
+        const PLAYLIST = [
+            {
+                id: 'my-ordinary-life',
+                title: 'My Ordinary Life',
+                artist: 'The Living Tombstone',
+                cover: 'assets/images/music/my-ordinary-life.jpg',
+                badge: '✦ TOP #1',
+                audio: 'assets/audio/my-ordinary-life.track',
+                fallbackDuration: '3:50'
+            },
+            {
+                id: 'supreme-shubh',
+                title: 'Supreme',
+                artist: 'Shubh',
+                cover: 'assets/images/music/supreme-shubh.jpg',
+                badge: '🔥 ON REPEAT',
+                audio: 'assets/audio/supreme-shubh.track',
+                fallbackDuration: '2:58'
+            },
+            {
+                id: 'cheques-shubh',
+                title: 'Cheques',
+                artist: 'Shubh',
+                cover: 'assets/images/music/cheques-shubh.jpg',
+                badge: '✨ MOST STREAMED',
+                audio: 'assets/audio/cheques-shubh.track',
+                fallbackDuration: '3:04'
+            },
+            {
+                id: 'no-love-shubh',
+                title: 'No Love',
+                artist: 'Shubh',
+                cover: 'assets/images/music/no-love-shubh.jpg',
+                badge: "🎧 SAHIL'S FAV",
+                audio: 'assets/audio/no-love-shubh.track',
+                fallbackDuration: '2:50'
+            }
+        ];
+
+        let currentIndex = 0;
+        let isPlaying = false;
+        let hoverTimeout = null;
+        const blobCache = new Map();
+        let currentLoadToken = 0;
+
+        // Fetch Track as in-memory Blob URL to prevent IDM (Internet Download Manager) interception
+        async function fetchTrackBlobUrl(song) {
+            if (blobCache.has(song.id)) {
+                return blobCache.get(song.id);
+            }
+            try {
+                const response = await fetch(song.audio);
+                const arrayBuffer = await response.arrayBuffer();
+                const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+                const blobUrl = URL.createObjectURL(blob);
+                blobCache.set(song.id, blobUrl);
+                return blobUrl;
+            } catch (err) {
+                console.warn('Blob fetch notice, fallback to direct path:', err);
+                return song.audio;
+            }
+        }
+
+        // Format Seconds to MM:SS
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) return '0:00';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // Load Track
+        async function loadTrack(index, autoPlay = false) {
+            if (index < 0 || index >= PLAYLIST.length) index = 0;
+            currentIndex = index;
+            const song = PLAYLIST[currentIndex];
+            const loadToken = ++currentLoadToken;
+
+            // Update UI elements
+            if (miniSongName) miniSongName.textContent = song.title;
+            if (miniStickerImg) miniStickerImg.src = song.cover;
+            if (coverImg) coverImg.src = song.cover;
+            if (stickerBadge) stickerBadge.textContent = song.badge;
+            if (trackTitle) trackTitle.textContent = song.title;
+            if (trackArtist) trackArtist.textContent = song.artist;
+            if (trackCounter) trackCounter.textContent = `${currentIndex + 1} / ${PLAYLIST.length}`;
+
+            // Reset progress
+            if (progressFill) progressFill.style.width = '0%';
+            if (progressHandle) progressHandle.style.left = '0%';
+            if (timeCurrent) timeCurrent.textContent = '0:00';
+            if (timeTotal) timeTotal.textContent = song.fallbackDuration;
+
+            // Load via in-memory Blob URL (bypasses IDM network hooks completely)
+            const blobUrl = await fetchTrackBlobUrl(song);
+
+            // Guard against race conditions if user switched tracks quickly
+            if (loadToken !== currentLoadToken) return;
+
+            audio.src = blobUrl;
+            audio.load();
+
+            if (autoPlay || isPlaying) {
+                playAudio();
+            }
+        }
+
+        // Play Audio
+        function playAudio() {
+            audio.play().then(() => {
+                isPlaying = true;
+                widget.classList.add('is-playing');
+                if (playIcon) playIcon.className = 'fas fa-pause';
+                if (miniPlayIcon) miniPlayIcon.className = 'fas fa-pause';
+            }).catch(err => {
+                console.log('Audio notice:', err);
+                isPlaying = false;
+                widget.classList.remove('is-playing');
+                if (playIcon) playIcon.className = 'fas fa-play';
+                if (miniPlayIcon) miniPlayIcon.className = 'fas fa-play';
+            });
+        }
+
+        // Pause Audio
+        function pauseAudio() {
+            audio.pause();
+            isPlaying = false;
+            widget.classList.remove('is-playing');
+            if (playIcon) playIcon.className = 'fas fa-play';
+            if (miniPlayIcon) miniPlayIcon.className = 'fas fa-play';
+        }
+
+        // Toggle Play/Pause
+        function togglePlay() {
+            triggerHaptic(30);
+            if (isPlaying) {
+                pauseAudio();
+            } else {
+                playAudio();
+            }
+        }
+
+        // Next Track (Sequential)
+        function nextTrack() {
+            triggerHaptic(25);
+            const nextIndex = (currentIndex + 1) % PLAYLIST.length;
+            loadTrack(nextIndex, true);
+        }
+
+        // Previous Track
+        function prevTrack() {
+            triggerHaptic(25);
+            if (audio.currentTime > 3) {
+                audio.currentTime = 0;
+            } else {
+                const prevIndex = (currentIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
+                loadTrack(prevIndex, true);
+            }
+        }
+
+        // Sequential Playback on Audio Ended Event
+        audio.addEventListener('ended', () => {
+            nextTrack();
+        });
+
+        let isSeeking = false;
+        let seekRatio = 0;
+
+        // Time Update (Only updates UI when NOT scrubbing)
+        audio.addEventListener('timeupdate', () => {
+            if (isSeeking) return; // Prevent overwriting slider while user is dragging
+            if (!audio.duration || isNaN(audio.duration)) return;
+            const progressPct = (audio.currentTime / audio.duration) * 100;
+            if (progressFill) progressFill.style.width = `${progressPct}%`;
+            if (progressHandle) progressHandle.style.left = `${progressPct}%`;
+            if (timeCurrent) timeCurrent.textContent = formatTime(audio.currentTime);
+        });
+
+        // Duration Loaded
+        audio.addEventListener('loadedmetadata', () => {
+            if (audio.duration && !isNaN(audio.duration) && timeTotal) {
+                timeTotal.textContent = formatTime(audio.duration);
+            }
+        });
+
+        // Interactive Scrubbable Seek Bar Handling
+        if (progressWrap) {
+            function updateSeekVisual(clientX) {
+                const rect = progressWrap.getBoundingClientRect();
+                const clickX = clientX - rect.left;
+                const width = rect.width;
+                if (width <= 0) return 0;
+                seekRatio = Math.max(0, Math.min(1, clickX / width));
+                const pct = seekRatio * 100;
+                if (progressFill) progressFill.style.width = `${pct}%`;
+                if (progressHandle) progressHandle.style.left = `${pct}%`;
+                if (audio.duration && !isNaN(audio.duration) && timeCurrent) {
+                    timeCurrent.textContent = formatTime(seekRatio * audio.duration);
+                }
+                return seekRatio;
+            }
+
+            function commitSeek() {
+                if (audio.duration && !isNaN(audio.duration)) {
+                    audio.currentTime = seekRatio * audio.duration;
+                }
+            }
+
+            progressWrap.addEventListener('pointerdown', (e) => {
+                isSeeking = true;
+                try { progressWrap.setPointerCapture(e.pointerId); } catch (err) {}
+                updateSeekVisual(e.clientX);
+            });
+
+            progressWrap.addEventListener('pointermove', (e) => {
+                if (!isSeeking) return;
+                updateSeekVisual(e.clientX);
+            });
+
+            function finishSeek(e) {
+                if (!isSeeking) return;
+                updateSeekVisual(e.clientX);
+                commitSeek();
+                isSeeking = false;
+                try { progressWrap.releasePointerCapture(e.pointerId); } catch (err) {}
+            }
+
+            progressWrap.addEventListener('pointerup', finishSeek);
+            progressWrap.addEventListener('pointercancel', finishSeek);
+
+            // Also support direct click to seek
+            progressWrap.addEventListener('click', (e) => {
+                updateSeekVisual(e.clientX);
+                commitSeek();
+            });
+        }
+
+        // Volume Control
+        if (volSlider) {
+            audio.volume = parseFloat(volSlider.value) || 0.8;
+
+            volSlider.addEventListener('input', (e) => {
+                const vol = parseFloat(e.target.value);
+                audio.volume = vol;
+                updateVolIcon(vol);
+            });
+        }
+
+        function updateVolIcon(vol) {
+            if (!volIcon) return;
+            if (vol <= 0) {
+                volIcon.className = 'fas fa-volume-xmark';
+            } else if (vol < 0.5) {
+                volIcon.className = 'fas fa-volume-low';
+            } else {
+                volIcon.className = 'fas fa-volume-high';
+            }
+        }
+
+        let prevVol = 0.8;
+        if (volBtn) {
+            volBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (audio.volume > 0) {
+                    prevVol = audio.volume;
+                    audio.volume = 0;
+                    if (volSlider) volSlider.value = 0;
+                } else {
+                    audio.volume = prevVol || 0.8;
+                    if (volSlider) volSlider.value = audio.volume;
+                }
+                updateVolIcon(audio.volume);
+            });
+        }
+
+        // Button Click Listeners (Only Prev, Play/Pause, Next)
+        if (playBtn) playBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
+        if (miniPlayBtn) miniPlayBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
+        if (prevBtn) prevBtn.addEventListener('click', (e) => { e.stopPropagation(); prevTrack(); });
+        if (nextBtn) nextBtn.addEventListener('click', (e) => { e.stopPropagation(); nextTrack(); });
+
+        // Instant, Smooth Pop-up & Close Interactions
+        widget.addEventListener('mouseenter', () => {
+            if (hoverTimeout) clearTimeout(hoverTimeout);
+            widget.classList.add('is-active');
+        });
+
+        widget.addEventListener('mouseleave', () => {
+            if (hoverTimeout) clearTimeout(hoverTimeout);
+            hoverTimeout = setTimeout(() => {
+                widget.classList.remove('is-active');
+            }, 80);
+        });
+
+        // Click mini pill to expand instantly
+        miniPill.addEventListener('click', (e) => {
+            if (e.target.closest('#mini-play-btn')) return;
+            triggerHaptic(20);
+            if (hoverTimeout) clearTimeout(hoverTimeout);
+            widget.classList.add('is-active');
+        });
+
+        // Collapse button for instant close
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                triggerHaptic(15);
+                if (hoverTimeout) clearTimeout(hoverTimeout);
+                widget.classList.remove('is-active');
+            });
+        }
+
+        // Initialize First Track
+        loadTrack(0, false);
+    }
+
+    initSpotifyPlayer();
 });

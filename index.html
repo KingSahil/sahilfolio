@@ -458,6 +458,131 @@
         </div>
     </div>
 
+    <!-- ======================================================================
+         Spotify Music Player Widget (Bottom-Right Corner Hover Pop-Up)
+         ====================================================================== -->
+    <aside class="spotify-widget-container" id="spotify-widget" aria-label="Spotify Music Player">
+        <!-- Floating Mini Resting Pill (Always visible in bottom-right corner) -->
+        <div class="spotify-mini-pill" id="spotify-mini-pill" title="Hover or click to expand player">
+            <div class="spotify-mini-vinyl-wrap">
+                <img src="assets/images/music/my-ordinary-life.jpg" alt="Track Album Sticker" class="spotify-mini-sticker" id="mini-sticker-img">
+                <span class="mini-vinyl-hole"></span>
+            </div>
+            <div class="spotify-mini-meta">
+                <div class="spotify-mini-header">
+                    <i class="fab fa-spotify spotify-icon"></i>
+                    <span class="spotify-mini-tag">On Repeat</span>
+                </div>
+                <div class="spotify-mini-song" id="mini-song-name">My Ordinary Life</div>
+            </div>
+            <div class="spotify-mini-eq" id="mini-eq">
+                <span class="eq-bar"></span>
+                <span class="eq-bar"></span>
+                <span class="eq-bar"></span>
+                <span class="eq-bar"></span>
+            </div>
+            <button class="spotify-mini-btn" id="mini-play-btn" aria-label="Play or Pause Track" title="Play / Pause">
+                <i class="fas fa-play" id="mini-play-icon"></i>
+            </button>
+            <div class="spotify-mini-chevron">
+                <i class="fas fa-chevron-up"></i>
+            </div>
+        </div>
+
+        <!-- Full Glassmorphism Player Card (Pops up on hover / tap) -->
+        <div class="spotify-card" id="spotify-card">
+            <!-- Header -->
+            <div class="spotify-card-header">
+                <div class="spotify-brand">
+                    <i class="fab fa-spotify spotify-glow-icon"></i>
+                    <div class="spotify-brand-text">
+                        <span class="spotify-brand-title">Spotify</span>
+                        <span class="spotify-brand-status"><span class="pulsing-live-dot"></span> Sahil's Top Picks</span>
+                    </div>
+                </div>
+                <div class="spotify-header-actions">
+                    <button class="spotify-icon-btn" id="spotify-collapse-btn" title="Collapse Player" aria-label="Collapse Player">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sticker & Album Art Section -->
+            <div class="spotify-artwork-area">
+                <div class="spotify-sticker-diecut" id="spotify-sticker-element">
+                    <div class="spotify-vinyl-disc" id="spotify-vinyl-disc">
+                        <div class="vinyl-grooves"></div>
+                    </div>
+                    <div class="sticker-card">
+                        <div class="sticker-highlight"></div>
+                        <img src="assets/images/music/my-ordinary-life.jpg" alt="Album Cover Sticker" class="sticker-img" id="spotify-cover-img">
+                        <span class="sticker-badge" id="spotify-sticker-badge">✦ TOP #1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Track Info -->
+            <div class="spotify-info-row">
+                <div class="spotify-text-details">
+                    <div class="spotify-title-scroller">
+                        <h4 class="spotify-track-title" id="spotify-track-title">My Ordinary Life</h4>
+                    </div>
+                    <p class="spotify-track-artist" id="spotify-track-artist">The Living Tombstone</p>
+                </div>
+            </div>
+
+            <!-- Progress Bar & Timestamps -->
+            <div class="spotify-progress-section">
+                <div class="spotify-progress-bar-wrap" id="spotify-progress-wrap" role="slider" aria-label="Seek track position">
+                    <div class="spotify-progress-rail">
+                        <div class="spotify-progress-fill" id="spotify-progress-fill"></div>
+                        <div class="spotify-progress-handle" id="spotify-progress-handle"></div>
+                    </div>
+                </div>
+                <div class="spotify-time-row">
+                    <span class="time-text" id="spotify-time-current">0:00</span>
+                    <span class="time-text" id="spotify-time-total">3:50</span>
+                </div>
+            </div>
+
+            <!-- Main Playback Controls (Only Prev, Play/Pause, Next) -->
+            <div class="spotify-controls-row streamlined">
+                <button class="spotify-ctrl-btn step-btn" id="spotify-prev-btn" title="Previous Song" aria-label="Previous Song">
+                    <i class="fas fa-backward-step"></i>
+                </button>
+                <button class="spotify-ctrl-btn play-master-btn" id="spotify-play-btn" title="Play" aria-label="Play / Pause">
+                    <i class="fas fa-play" id="spotify-play-icon"></i>
+                </button>
+                <button class="spotify-ctrl-btn step-btn" id="spotify-next-btn" title="Next Song" aria-label="Next Song">
+                    <i class="fas fa-forward-step"></i>
+                </button>
+            </div>
+
+            <!-- Bottom Tooling: Volume & Equalizer -->
+            <div class="spotify-bottom-bar">
+                <div class="spotify-volume-wrap">
+                    <button class="spotify-vol-btn" id="spotify-vol-btn" aria-label="Mute / Unmute" title="Mute / Unmute">
+                        <i class="fas fa-volume-high" id="spotify-vol-icon"></i>
+                    </button>
+                    <div class="spotify-vol-slider-wrap" id="spotify-vol-wrap">
+                        <input type="range" min="0" max="1" step="0.01" value="0.8" class="spotify-vol-slider" id="spotify-vol-slider" aria-label="Volume Slider">
+                    </div>
+                </div>
+                <div class="spotify-footer-eq" id="spotify-footer-eq">
+                    <span class="eq-col"></span>
+                    <span class="eq-col"></span>
+                    <span class="eq-col"></span>
+                    <span class="eq-col"></span>
+                    <span class="eq-col"></span>
+                </div>
+                <span class="spotify-track-counter" id="spotify-track-counter">1 / 4</span>
+            </div>
+        </div>
+
+        <!-- Hidden Audio Element for Playback -->
+        <audio id="spotify-audio-player" preload="metadata"></audio>
+    </aside>
+
     <script src="assets/js/script.js"></script>
 </body>
 

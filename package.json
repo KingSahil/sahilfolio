@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "python3 -m http.server 8080 --bind 0.0.0.0",
-    "dev:pc": "(sleep 1 && xdg-open http://localhost:8080) & python3 -m http.server 8080 --bind 0.0.0.0",
+    "dev": "bun server.js",
+    "dev:pc": "(sleep 1 && xdg-open http://localhost:8080) & bun server.js",
     "mobile": "adb reverse tcp:8080 tcp:8080 && adb shell am start -a android.intent.action.VIEW -d 'http://localhost:8080'",
-    "dev:mobile": "(sleep 1 && bun run mobile) & python3 -m http.server 8080 --bind 0.0.0.0"
+    "dev:mobile": "(sleep 1 && bun run mobile) & bun server.js"
   }
 }
